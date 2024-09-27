@@ -46,11 +46,11 @@ fi
 sudo chmod -R a+rwx $rootpath/bm
 
 if [ $# -eq 3 ]; then
-        $rootpath/bm/bm-agent -ak $1 -sk $2 -serverName $3 -home $homepath &
+	sudo $rootpath/bm/run.sh $1 $2 $3 $homepath
 elif [ $# -eq 4 ]; then
-        $rootpath/bm/bm-agent -ak $1 -sk $2 -serverName $3 -home $homepath -cs $4 &
+	sudo $rootpath/bm/run.sh $1 $2 $3 $homepath $4
 else
-        echo "param error"
+	echo "param error"
 fi
 
 if ps aux | grep -v grep | grep "bm-agent" >/dev/null; then
