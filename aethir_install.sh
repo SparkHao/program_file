@@ -1,0 +1,62 @@
+#!/bin/bash
+
+homepath=$HOME
+curuser=$USER
+mkdir -p $HOME/.ssh
+sudo chmod 700 $HOME/.ssh
+
+curuser=$USER
+echo "HOME path:$homepath"
+echo "Current User:$curuser"
+
+SUDODESC="$curuser ALL=(ALL:ALL) NOPASSWD:ALL"
+sudo chmod 555 /etc/sudoers
+sudo echo $SUDODESC | sudo tee -a /etc/sudoers
+sudo chmod 440 /etc/sudoers
+
+rootpath=/usr/cg
+
+sudo mkdir -p $rootpath
+sudo chmod a+rwx $rootpath
+
+if [ -f "$rootpath/bm.tar.gz" ]; then
+        rm -f $rootpath/bm.tar.gz
+fi
+
+sudo systemctl stop bm-agent
+
+sudo wget https://clientdata-public.s3.ap-southeast-1.amazonaws.com/linux/bm-1.7.4.4.6e3ac57.tar.gz -O $rootpath/bm.tar.gz
+
+if [ -f "$rootpath/bm.tar.gz" ]; then
+        echo "download file success"
+else
+        echo "download failed!"
+        exit 0
+fi
+
+tar -zxvf $rootpath/bm.tar.gz -C $rootpath
+
+if [ -f "$rootpath/bm/bm-agent" ]; then
+        echo "unpress package success"
+else
+        echo "unpress failed!"
+        exit 0
+fi
+
+sudo chmod -R a+rwx $rootpath/bm
+
+if [ $# -eq 3 ]; then
+        $rootpath/bm/bm-agent -ak $1 -sk $2 -serverName $3 -home $homepath &
+elif [ $# -eq 4 ]; then
+        $rootpath/bm/bm-agent -ak $1 -sk $2 -serverName $3 -home $homepath -cs $4 &
+else
+        echo "param error"
+fi
+
+if ps aux | grep -v grep | grep "bm-agent" >/dev/null; then
+        echo "bm-agent service is running..."
+else
+        echo "bm-agent service start failed"
+fi
+
+echo "bm-agent install successful"
